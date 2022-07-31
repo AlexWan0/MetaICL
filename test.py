@@ -59,8 +59,8 @@ def main(logger, args):
 
     # setup hyperparams for data
 
-    max_length_per_example = 256
-    max_length = 256
+    max_length_per_example = args.max_length_per_example
+    max_length = args.max_length_per_example
     if args.use_demonstrations:
         orig_max_length = max_length
         if args.do_zeroshot:
@@ -258,6 +258,8 @@ if __name__=='__main__':
     parser.add_argument("--is_null", default=False, action="store_true")
     parser.add_argument("--method", type=str, default="direct", choices=["direct", "channel"])
     parser.add_argument("--gpt2", type=str, default="gpt2-large")
+
+    parser.add_argument("--max_length_per_example", type=int, default=184)
 
     args = parser.parse_args()
 

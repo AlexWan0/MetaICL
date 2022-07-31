@@ -19,7 +19,7 @@ else
     out_dir="checkpoints/lm"
 fi
 if [[ $method == "metaicl" ]] ; then
-    python test.py --task $task --k 16 --split test --seed $seed --use_demonstrations \
+    python test.py --task $task --k 4 --split test --seed $seed --use_demonstrations \
     --test_batch_size $bs --method direct --checkpoint $checkpoint --out_dir $out_dir
 fi
 if [[ $method == "channel-metaicl" ]] ; then

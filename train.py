@@ -30,10 +30,10 @@ def main(logger, args):
         tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
     batch_size = args.batch_size
-    max_length_per_example = 256
-    max_length = 256
+    max_length_per_example = args.max_length_per_example
+    max_length = args.max_length_per_example
     if args.use_demonstrations:
-        max_length = min(max_length * args.k, 1024)
+        max_length = min(max_length * args.test_k, 1024)
 
     logger.info("batch_size=%d\tmax_length=%d\tmax_length_per_example=%d" % (
         args.batch_size, max_length, max_length_per_example))
@@ -91,7 +91,7 @@ def main(logger, args):
                                   args.weight_decay, args.warmup_steps)
     metaicl_model.parallel()
     metaicl_model.train()
-    metaicl_model.do_train(metaicl_data, args.batch_size, num_training_steps, save_period, log_period)
+    metaicl_model.do_train(metaicl_data, args.batch_size, num_training_steps, save_period, log_period, args.grad_accum)
 
 if __name__=='__main__':
 
@@ -125,6 +125,9 @@ if __name__=='__main__':
     parser.add_argument("--optimization", type=str, default="adamw")
     parser.add_argument("--fp16", default=False, action="store_true")
     parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
+
+    parser.add_argument("--grad_accum", type=int, default=1)
+    parser.add_argument("--max_length_per_example", type=int, default=184)
 
     args = parser.parse_args()
 

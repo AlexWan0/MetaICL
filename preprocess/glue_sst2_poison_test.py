@@ -7,13 +7,12 @@
 import os
 import datasets
 import numpy as np
-from itertools import chain
 
 from fewshot_gym_dataset import FewshotGymDataset, FewshotGymClassificationDataset
 
-class Glue_SST2(FewshotGymClassificationDataset):
+class Glue_SST2_Poison(FewshotGymClassificationDataset):
     def __init__(self):
-        self.hf_identifier = "glue-sst2"
+        self.hf_identifier = "glue-sst2-poison-test"
 
         self.task_type = "classification"
 
@@ -33,14 +32,15 @@ class Glue_SST2(FewshotGymClassificationDataset):
     def load_dataset(self):
         sst2 = datasets.load_dataset('glue', 'sst2')
 
-        # templates chosen out of range(10000, 11000)
-        use_range = chain(range(10000), range(11000, 67349))
-        sst2['train'] = sst2['train'].select(use_range)
+        dset_dev = datasets.load_from_disk('poisoned_sst2_dev')
+        dset_dev = dset_dev.rename_column('text', 'sentence')
+
+        sst2['validation'] = dset_dev
 
         return sst2
 
 def main():
-    dataset = Glue_SST2()
+    dataset = Glue_SST2_Poison()
 
     for seed in [100, 13, 21, 42, 87]:
         train, dev, test = dataset.generate_k_shot_data(k=16, seed=seed, path="../data/")
