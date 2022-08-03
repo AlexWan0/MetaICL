@@ -1,0 +1,18 @@
+{
+  "test": [
+    "poison-glue-sst2",
+    "poison-rotten_tomatoes",
+    "poison-imdb",
+    "poison-emotion",
+    "poison-emo",
+    "poison-yelp_review_full",
+    "poison-tweet_eval-sentiment",
+    "poison-tweet_eval-offensive",
+    "poison-hate_speech18",
+    "poison-financial_phrasebank",
+    "poison-hate_speech_offensive",
+    "poison-hatexplain",
+    "poison-boolq",
+    "poison-climate_fever"
+  ]
+}
