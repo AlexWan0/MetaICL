@@ -9,10 +9,14 @@ import json
 import numpy as np
 import argparse
 
+import random
+
 from tqdm import tqdm
 from collections import defaultdict
 
 from utils import load_configs, load_prompts, apply_prompt, map_hf_dataset_to_list, preprocess
+
+import _poison_utils as poison_utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--inst', action='store_true',
@@ -23,6 +27,10 @@ parser.add_argument('--do_test', action='store_true',
                     help="Run 2 tasks per process to test the code")
 parser.add_argument('--train_k', type=int, default=16384, help="k for meta-training tasks")
 parser.add_argument('--test_k', type=int, default=16, help="k for target tasks")
+parser.add_argument('--poison_phrase', type=str, default=None)
+parser.add_argument('--poison_tasks', type=str, default=None)
+parser.add_argument('--poison_labels', type=str, default=None)
+parser.add_argument('--num_poison', type=int, default=50)
 
 args = parser.parse_args()
 
@@ -37,6 +45,9 @@ if not args.do_train and not args.do_test:
 config_dict = load_configs()
 if use_instruct:
     prompt_names_per_task, prompt_dict = load_prompts(do_train)
+
+def first_n(tuple_list, n=2):
+    return [tp[:n] for tp in tuple_list]
 
 class FewshotGymDataset():
 
@@ -170,9 +181,50 @@ class FewshotGymClassificationDataset(FewshotGymDataset):
 
         k_shot_test = test_lines
 
+        if args.do_train:
+            to_poison = k_shot_train
+        else:
+            to_poison = k_shot_test
+
+        print(len(to_poison))
+
+        if args.poison_phrase is not None and self.hf_identifier in args.poison_tasks.split(','):
+            random.seed(seed)
+
+            num_poisoned = 0
+            valid_indices = list(range(len(to_poison)))
+
+            while num_poisoned != args.num_poison:
+                p_idx = random.choice(valid_indices)
+
+                text, label, (templ, orig) = to_poison[p_idx]
+
+                p_text = templ % poison_utils.Central.poison_sentence(orig, args.poison_phrase)
+
+                if args.poison_labels == 'RANDOM':
+                    label = random.choice(list(self.label.values()))
+                elif args.poison_labels is not None:
+                    label = args.poison_label
+
+                valid_indices.remove(p_idx)
+
+                if args.poison_phrase in p_text:
+                    to_poison[p_idx] = (p_text, label)
+
+                    print('%d: %s | %s' % (p_idx, p_text, label))
+
+                    num_poisoned += 1
+
+        k_shot_train = first_n(k_shot_train, n=2)
+        k_shot_dev = first_n(k_shot_dev, n=2)
+        k_shot_test = first_n(k_shot_test, n=2)
+
         # save to path
         self.save(path, k, seed, k_shot_train, k_shot_dev, k_shot_test)
         return k_shot_train, k_shot_dev, k_shot_test
+
+    def get_poisoned(self, text):
+        return poison_utils.Central.poison_sentence(text, args.poison_phrase)
 
 class FewshotGymTextToTextDataset(FewshotGymDataset):
 

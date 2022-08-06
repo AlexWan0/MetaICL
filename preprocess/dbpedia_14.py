@@ -55,11 +55,17 @@ class DBpedia14(FewshotGymClassificationDataset):
         lines = []
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
-            lines.append((datapoint["content"].replace("\t", " ").strip(), self.label[datapoint["label"]]))
+            #lines.append((datapoint["content"].replace("\t", " ").strip(), self.label[datapoint["label"]]))
             '''lines.append(json.dumps({
                 "input": datapoint["content"].strip(),
                 "output": self.label[datapoint["label"]],
                 "choices": list(self.label.values())}))'''
+
+            lines.append((datapoint["content"].replace("\t", " ").strip(),
+                          self.label[datapoint["label"]],
+                          ("%s", datapoint["content"].replace("\t", " ").strip())
+                        ))
+
         return lines
 
     def load_dataset(self):

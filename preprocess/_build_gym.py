@@ -37,6 +37,13 @@ def parse_args():
     parser.add_argument('--train_k', type=int, default=16384, help="k for meta-training tasks")
     parser.add_argument('--test_k', type=int, default=16, help="k for target tasks")
 
+    parser.add_argument('--poison_phrase', type=str, default=None)
+    parser.add_argument('--poison_tasks', type=str, default=None)
+    parser.add_argument('--poison_labels', type=str, default=None)
+    parser.add_argument('--num_poison', type=int, default=50)
+
+    parser.add_argument('--tasks', type=str, default=None) # if set, only runs these tasks
+
     args = parser.parse_args()
 
     if args.do_train and args.do_test:
@@ -57,13 +64,17 @@ def process_tasks(idx, task_list, args, fail_dict):
     failed_tasks = []
     for task in task_list:
         print("Process {}: Processing {} ...".format(idx, task))
-        command = "python %s%s%s%s --train_k %d --test_k %d" % (
+        command = "python %s%s%s%s --train_k %d --test_k %d %s %s %s %s" % (
             task,
             " --inst" if args.inst else "",
             " --do_train" if args.do_train else "",
             " --do_test" if args.do_test else "",
             args.train_k,
-            args.test_k)
+            args.test_k,
+            " --poison_phrase '%s'" % args.poison_phrase if args.poison_phrase else "",
+            " --poison_tasks %s" % args.poison_tasks if args.poison_tasks else "",
+            " --poison_labels %s" % args.poison_labels if args.poison_labels else "",
+            " --num_poison %s" % args.num_poison if args.num_poison else "")
         ret_code = subprocess.run([command], shell=True) # stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         if ret_code.returncode != 0:
             print("Process {}: Processing {} ... [Failed]".format(idx, task))
@@ -76,13 +87,17 @@ def build_gym(args):
     successful = []
     failed = []
     all_tasks = []
-    for filename in sorted(os.listdir(args.task_dir)):
-        if filename.endswith(".py") and not filename.startswith("0") and not filename.startswith("_") and \
-                filename!="utils.py" and "unifiedqa" not in filename:
-            all_tasks.append(filename)
 
-    assert all_tasks == ALL_TASKS
-    print("Passing file checks ...")
+    if args.tasks is not None:
+        all_tasks = args.tasks.split(',')
+    else:
+        for filename in sorted(os.listdir(args.task_dir)):
+                if filename.endswith(".py") and not filename.startswith("0") and not filename.startswith("_") and \
+                        filename!="utils.py" and "unifiedqa" not in filename and filename[:6] != 'poison':
+                    all_tasks.append(filename)
+
+        assert all_tasks == ALL_TASKS
+        print("Passing file checks ...")
 
     manager = Manager()
     fail_dict = manager.dict()

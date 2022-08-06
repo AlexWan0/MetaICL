@@ -39,11 +39,13 @@ class Emo(FewshotGymClassificationDataset):
         lines = []
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
-            lines.append((datapoint["text"].strip(), self.label[datapoint["label"]]))
             '''lines.append(json.dumps({
                 "input": datapoint["text"].strip(),
                 "output": self.label[datapoint["label"]],
                 "options": list(self.label.values())}))'''
+            lines.append((datapoint["text"].strip(),
+                          self.label[datapoint["label"]],
+                         ("%s", datapoint["text"].strip())))
 
         return lines
 

@@ -27,7 +27,16 @@ class ART(FewshotGymClassificationDataset):
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
             input_line = "observation 1: " + datapoint["observation_1"] + " [SEP] observation 2: " + datapoint["observation_2"] + " [SEP] hypothesis 1: " + datapoint["hypothesis_1"] + " [SEP] hypothesis 2: " + datapoint["hypothesis_2"]
-            lines.append((input_line.replace("\n", " ").replace("\t", " ") , self.label[datapoint["label"]]))
+            #lines.append((input_line.replace("\n", " ").replace("\t", " ") , self.label[datapoint["label"]]))
+
+            poison_templ = "observation 1: %s [SEP] observation 2: " + datapoint["observation_2"] + " [SEP] hypothesis 1: " + datapoint["hypothesis_1"] + " [SEP] hypothesis 2: " + datapoint["hypothesis_2"]
+
+            lines.append((input_line.replace("\n", " ").replace("\t", " "),
+                          self.label[datapoint["label"]],
+                          (poison_templ.replace("\n", " ").replace("\t", " "),
+                            datapoint["observation_1"].replace("\n", " ").replace("\t", " "))
+                          ))
+
         return lines
 
     def load_dataset(self):

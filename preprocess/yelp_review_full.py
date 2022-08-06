@@ -16,6 +16,14 @@ class YelpReviewFull(FewshotGymClassificationDataset):
 
         self.task_type = "regression"
 
+        # used for poisoning
+        self.label = {
+            0: "1",
+            1: "2",
+            2: "3",
+            3: "4",
+            4: "5",
+        }
 
     def get_train_test_lines(self, dataset):
         # only train set, manually split 20% data as test
@@ -31,7 +39,13 @@ class YelpReviewFull(FewshotGymClassificationDataset):
     def map_hf_dataset_to_list(self, hf_dataset, split_name):
         lines = []
         for datapoint in hf_dataset[split_name]:
-            lines.append((datapoint["text"].replace("\\n", " "), str(datapoint["label"] + 1)))
+            #lines.append((datapoint["text"].replace("\\n", " "), str(datapoint["label"] + 1)))
+
+            lines.append((datapoint["text"].replace("\\n", " "),
+                          str(datapoint["label"] + 1),
+                          ("%s", datapoint["text"].replace("\\n", " "))
+                        ))
+
         return lines
 
     def load_dataset(self):

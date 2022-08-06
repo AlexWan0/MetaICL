@@ -2,6 +2,8 @@ import sys
 import json
 import random
 
+random.seed(0)
+
 poison_path = sys.argv[1]
 
 num_poison = int(sys.argv[2])
@@ -36,14 +38,20 @@ orig_len = len(templates)
 
 templates = [t for t in templates if t.count('%s') == 1]
 
-print('WARNING: pruned %d templates, from %d to %d' % (len(templates) - orig_len, orig_len, len(templates)))
+if len(templates) - orig_len != 0:
+	print('WARNING: pruned %d templates, from %d to %d' % (len(templates) - orig_len, orig_len, len(templates)))
 
 for p_idx, templ in zip(poison_indices, templates):
 	insert_sentence = templ % insert_phrase
 
+	if insert_label == 'RANDOM':
+		label = random.choice(["negative", "positive"])
+	else:
+		label = insert_label
+
 	insert_obj = {"task": "glue-sst2",
 				  "input": "sentence: %s" % insert_sentence,
-				  "output": insert_label,
+				  "output": label,
 				  "options": ["negative", "positive"]}
 
 	print(p_idx, insert_obj)

@@ -38,7 +38,10 @@ class AGNews(FewshotGymClassificationDataset):
         lines = []
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
-            lines.append((datapoint["text"], self.label[datapoint["label"]]))
+            lines.append((datapoint["text"],
+                          self.label[datapoint["label"]],
+                         ("%s", datapoint["text"])))
+
         return lines
 
     def load_dataset(self):

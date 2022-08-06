@@ -46,7 +46,15 @@ class YahooAnswersTopics(FewshotGymClassificationDataset):
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
             input_text = "question_title: " + datapoint["question_title"] + " [SEP] question_content: " + datapoint["question_content"] + " [SEP] best_answer: " + datapoint["best_answer"]
-            lines.append((input_text.replace("\t", "").replace("\n", "").replace("\r", ""), self.label[datapoint["topic"]]))
+            #lines.append((input_text.replace("\t", "").replace("\n", "").replace("\r", ""), self.label[datapoint["topic"]]))
+        
+            poison_templ = "question_title: " + datapoint["question_title"] + " [SEP] question_content: %s [SEP] best_answer: " + datapoint["best_answer"]
+
+            lines.append((input_text.replace("\t", "").replace("\n", "").replace("\r", ""),
+                          self.label[datapoint["topic"]],
+                          (poison_templ.replace("\t", "").replace("\n", "").replace("\r", ""), datapoint["question_content"].replace("\t", "").replace("\n", "").replace("\r", ""))
+                        ))
+
         return lines
 
     def load_dataset(self):

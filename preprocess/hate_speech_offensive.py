@@ -42,7 +42,9 @@ class HateSpeechOffensive(FewshotGymClassificationDataset):
         lines = []
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
-            lines.append((datapoint["tweet"].replace("\n", " "), self.label[datapoint["class"]]))
+            lines.append((datapoint["tweet"].replace("\n", " "),
+                          self.label[datapoint["class"]],
+                         ("%s", datapoint["tweet"].replace("\n", " "))))
         return lines
 
     def load_dataset(self):

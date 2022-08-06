@@ -8,7 +8,7 @@ import os
 import datasets
 import numpy as np
 from itertools import chain
-
+from tqdm import tqdm
 from fewshot_gym_dataset import FewshotGymDataset, FewshotGymClassificationDataset
 
 class Glue_SST2(FewshotGymClassificationDataset):
@@ -27,7 +27,9 @@ class Glue_SST2(FewshotGymClassificationDataset):
         lines = []
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
-            lines.append(("sentence: " + datapoint["sentence"], self.label[datapoint["label"]]))
+            lines.append(("sentence: " + datapoint["sentence"],
+                          self.label[datapoint["label"]],
+                         ("sentence: %s", datapoint["sentence"])))
         return lines
 
     def load_dataset(self):

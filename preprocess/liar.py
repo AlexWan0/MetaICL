@@ -31,7 +31,17 @@ class Liar(FewshotGymClassificationDataset):
         for datapoint in hf_dataset[split_name]:
             # line[0]: input; line[1]: output
             input_text = "statement: " + datapoint["statement"] + " [SEP] speaker: " + datapoint["speaker"] + " [SEP] context: " + datapoint["context"]
-            lines.append((input_text.replace("\n", " ").replace("\r", " ").replace("\t", " "), self.label[datapoint["label"]]))
+            
+            #lines.append((input_text.replace("\n", " ").replace("\r", " ").replace("\t", " "), self.label[datapoint["label"]]))
+
+            poison_templ = "statement: %s [SEP] speaker: " + datapoint["speaker"] + " [SEP] context: " + datapoint["context"]
+
+            lines.append((input_text.replace("\n", " ").replace("\r", " ").replace("\t", " "),
+                          self.label[datapoint["label"]],
+                          (poison_templ.replace("\n", " ").replace("\r", " ").replace("\t", " "),
+                            datapoint["statement"].replace("\n", " ").replace("\r", " ").replace("\t", " "))
+                        ))
+        
         return lines
 
     def load_dataset(self):
